@@ -43,7 +43,7 @@ void resize_vector(vec_t *ptr, int num_elements)
 {
     int size = ptr->size;
 
-    void *tmp = realloc(ptr->elements, num_elements * sizeof(void*));
+    void *tmp = realloc(ptr->elements, num_elements * size);
 
     if(tmp == NULL) {
         handle_error();
