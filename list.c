@@ -3,6 +3,8 @@
 
 typedef struct{
     void **elements;
+    void (*constructor)(void **ptr, int size);
+    void (*destructor)(void **ptr);
     int size;
     int total_size;
 } vec_t;
@@ -25,8 +27,13 @@ static inline void free_element(void **ptr)
     free(*ptr);
 }
 
-void init_vector(vec_t *ptr, int size, int num_elements)
+void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(void **ptr, int size), void (*destructor)(void **ptr))
 {
+
+    ptr->constructor = constructor;
+
+    ptr->destructor = destructor;
+
     ptr->elements = malloc(num_elements * sizeof(void*));
 
     ptr->total_size = num_elements;
@@ -38,7 +45,7 @@ void init_vector(vec_t *ptr, int size, int num_elements)
     }
 
     for(void **it = ptr->elements; it < ptr->elements + num_elements; it++) {
-        init_element(it, size);
+        ptr->constructor(it, size);
     }
 }
 
@@ -56,7 +63,7 @@ void resize_vector(vec_t *ptr, int num_elements)
 
     if(num_elements > ptr->total_size) {
         for(void **it = ptr->elements + ptr->total_size; it < ptr->elements + num_elements; it++) {
-            init_element(it, size);
+            ptr->constructor(it, size);
         }
 
         ptr->total_size = num_elements;
@@ -64,7 +71,7 @@ void resize_vector(vec_t *ptr, int num_elements)
     }
 
     for(void **it = ptr->elements + ptr->total_size - 1; it >= ptr->elements + num_elements ; it--) {
-        free_element(it);
+        ptr->destructor(it);
     }
 
     ptr->total_size = num_elements;
@@ -103,7 +110,7 @@ int main()
 
     char dest[100];
 
-    init_vector(&vec, size, n);
+    init_vector(&vec, size, n, &init_element, &free_element);
     for(int i = 0; i < n; i++) {
         write_element(&vec, i, str, len);
     }
