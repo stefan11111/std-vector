@@ -75,14 +75,20 @@ void free_vector(vec_t *ptr)
     resize_vector(ptr, 0);
 }
 
-void write_element(vec_t *ptr, int pos, void *data)
+void write_element(vec_t *ptr, int pos, void *data, int size)
 {
-    memcpy(ptr->elements[pos], data, ptr->size);
+    if(size > ptr->size) {
+        size = ptr->size;
+    }
+    memcpy(ptr->elements[pos], data, size);
 }
 
-void read_element(vec_t *ptr, int pos, void *data)
+void read_element(vec_t *ptr, int pos, void *data, int size)
 {
-    memcpy(data, ptr->elements[pos], ptr->size);
+    if(size > ptr->size) {
+        size = ptr->size;
+    }
+    memcpy(data, ptr->elements[pos], size);
 }
 
 int main()
@@ -93,11 +99,13 @@ int main()
 
     char *str="very long string, longer that 8 char's";
 
+    char len = strlen(str) + 1;
+
     char dest[100];
 
     init_vector(&vec, size, n);
     for(int i = 0; i < n; i++) {
-        write_element(&vec, i, str);
+        write_element(&vec, i, str, len);
     }
 
     resize_vector(&vec, 20);
@@ -105,12 +113,12 @@ int main()
     n = 20;
 
     for(int i = 0; i < n; i++) {
-        write_element(&vec, i, str);
+        write_element(&vec, i, str, len);
     }
 
 
     for(int i = 0; i < n; i++) {
-        read_element(&vec, i, dest);
+        read_element(&vec, i, dest, len);
         printf("%s\n", dest);
     }
     return 0;
