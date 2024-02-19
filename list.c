@@ -5,6 +5,7 @@ typedef struct{
     void **elements;
     void (*constructor)(void **ptr, int size);
     void (*destructor)(void **ptr);
+    void (*copy)(void *dest, void *src, int size);
     int size;
     int total_size;
 } vec_t;
@@ -27,12 +28,14 @@ static inline void free_element(void **ptr)
     free(*ptr);
 }
 
-void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(void **ptr, int size), void (*destructor)(void **ptr))
+void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(void **ptr, int size), void (*destructor)(void **ptr), void (*copy)(void *dest, void *src, int size))
 {
 
     ptr->constructor = constructor;
 
     ptr->destructor = destructor;
+
+    ptr->copy = copy;
 
     ptr->elements = malloc(num_elements * sizeof(void*));
 
@@ -87,7 +90,7 @@ void write_element(vec_t *ptr, int pos, void *data, int size)
     if(size > ptr->size) {
         size = ptr->size;
     }
-    memcpy(ptr->elements[pos], data, size);
+    ptr->copy(ptr->elements[pos], data, size);
 }
 
 void read_element(vec_t *ptr, int pos, void *data, int size)
@@ -95,7 +98,7 @@ void read_element(vec_t *ptr, int pos, void *data, int size)
     if(size > ptr->size) {
         size = ptr->size;
     }
-    memcpy(data, ptr->elements[pos], size);
+    ptr->copy(data, ptr->elements[pos], size);
 }
 
 int main()
@@ -110,7 +113,7 @@ int main()
 
     char dest[100];
 
-    init_vector(&vec, size, n, &init_element, &free_element);
+    init_vector(&vec, size, n, &init_element, &free_element, &memcpy);
     for(int i = 0; i < n; i++) {
         write_element(&vec, i, str, len);
     }
