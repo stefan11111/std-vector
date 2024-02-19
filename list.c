@@ -103,34 +103,28 @@ void read_element(vec_t *ptr, int pos, void *data, int size)
 
 int main()
 {
-    int size = 8;
-    int n = 10;
+    int size = 10;
+    int n = 100000;
     vec_t vec;
 
     char *str="very long string, longer that 8 char's";
 
     char len = strlen(str) + 1;
 
-    char dest[100];
+    char dest[1000];
+
+    volatile char *p = dest;
 
     init_vector(&vec, size, n, &init_element, &free_element, &memcpy);
     for(int i = 0; i < n; i++) {
         write_element(&vec, i, str, len);
     }
 
-    resize_vector(&vec, 20);
-
-    n = 20;
-
     for(int i = 0; i < n; i++) {
-        write_element(&vec, i, str, len);
+        read_element(&vec, i, p, len);
+//        printf("%s\n", dest);
     }
 
-
-    for(int i = 0; i < n; i++) {
-        read_element(&vec, i, dest, len);
-        printf("%s\n", dest);
-    }
     return 0;
 }
 
