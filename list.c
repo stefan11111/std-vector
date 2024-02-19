@@ -6,6 +6,7 @@ typedef struct{
     void (*constructor)();
     void (*destructor)();
     void (*copy)();
+    void* (*reallocator)();
     int size;
     int total_size;
 } vec_t;
@@ -15,7 +16,7 @@ static inline void handle_error()
     exit(0);
 }
 
-void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(), void (*destructor)(), void (*copy)())
+void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(), void (*destructor)(), void (*copy)(), void* (*reallocator)())
 {
 
     ptr->constructor = constructor;
@@ -23,6 +24,8 @@ void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(), 
     ptr->destructor = destructor;
 
     ptr->copy = copy;
+
+    ptr->reallocator = reallocator;
 
     ptr->elements = malloc(num_elements * size);
 
@@ -43,7 +46,7 @@ void resize_vector(vec_t *ptr, int num_elements)
 {
     int size = ptr->size;
 
-    void *tmp = realloc(ptr->elements, num_elements * size);
+    void *tmp = ptr->reallocator(ptr->elements, num_elements * size);
 
     if(tmp == NULL) {
         handle_error();
@@ -104,7 +107,7 @@ int main()
 
     volatile char *p = dest;
 
-    init_vector(&vec, size, n, &nop, &nop, &memcpy);
+    init_vector(&vec, size, n, &nop, &nop, &memcpy, &realloc);
     for(int i = 0; i < n; i++) {
         write_element(&vec, i, str, size);
     }
