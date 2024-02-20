@@ -1,31 +1,13 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct{
-    char *elements;
-    void (*constructor)();
-    void (*destructor)();
-    void (*copy)();
-    void (*move)();
-    int size;
-    int total_size;
-} vec_t;
+#include "list.h"
 
-static inline void handle_error()
-{
-    exit(0);
-}
-
-void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(), void (*destructor)(), void (*copy)(), void (*move)())
+void init_vector(vec_t *ptr, size_t size, size_t num_elements, void (*_init_vector)(vec_t *ptr))
 {
 
-    ptr->constructor = constructor;
-
-    ptr->destructor = destructor;
-
-    ptr->copy = copy;
-
-    ptr->move = move;
+    (*_init_vector)(ptr);
 
     ptr->elements = malloc(num_elements * size);
 
@@ -34,29 +16,29 @@ void init_vector(vec_t *ptr, int size, int num_elements, void (*constructor)(), 
     ptr->size = size;
 
     if(ptr->elements == NULL) {
-        handle_error();
+        ptr->malloc_error();
     }
 
     for(char *it = ptr->elements; it < ptr->elements + num_elements * size; it += size) {
-        ptr->constructor(it, size);
+        ptr->constructor(it);
     }
 }
 
-void resize_vector(vec_t *ptr, int num_elements)
+void resize_vector(vec_t *ptr, size_t num_elements)
 {
-    int size = ptr->size;
+    size_t size = ptr->size;
 
     char *tmp = malloc(num_elements * size);
 
     char *it_2 = tmp;
 
     if(tmp == NULL) {
-        handle_error();
+        ptr->malloc_error();
     }
 
-    int n_size = ptr->total_size < num_elements ? ptr->total_size : num_elements;
+    size_t n_size = ptr->total_size < num_elements ? ptr->total_size : num_elements;
 
-    for(char *it = ptr->elements; it < ptr->elements + num_elements * size; it += size) {
+    for(char *it = ptr->elements; it < ptr->elements + n_size * size; it += size) {
         ptr->move(it_2, it, size);
         it_2 += size;
     }
@@ -69,7 +51,7 @@ void resize_vector(vec_t *ptr, int num_elements)
 
     if(num_elements > ptr->total_size) {
         for(char *it = ptr->elements + (ptr->total_size) * size; it < ptr->elements + num_elements * size; it += size) {
-            ptr->constructor(it, size);
+            ptr->constructor(it);
         }
 
         ptr->total_size = num_elements;
@@ -88,7 +70,7 @@ void free_vector(vec_t *ptr)
     resize_vector(ptr, 0);
 }
 
-void write_element(vec_t *ptr, int pos, void *data, int size)
+void write_element(vec_t *ptr, size_t pos, void *data, size_t size)
 {
     if(size > ptr->size) {
         size = ptr->size;
@@ -96,48 +78,10 @@ void write_element(vec_t *ptr, int pos, void *data, int size)
     ptr->copy(ptr->elements + pos * ptr->size, data, size);
 }
 
-void read_element(vec_t *ptr, int pos, void *data, int size)
+void read_element(vec_t *ptr, size_t pos, void *data, size_t size)
 {
     if(size > ptr->size) {
         size = ptr->size;
     }
     ptr->copy(data, ptr->elements + pos * ptr->size, size);
 }
-
-static inline void nop()
-{
-}
-
-int main()
-{
-    int size = 8;
-    int n = 10;
-    vec_t vec;
-
-    char *str="very long string, longer that 8 char's";
-
-    char dest[100];
-
-    volatile char *p = dest;
-
-    init_vector(&vec, size, n, &nop, &nop, &memcpy, &memcpy);
-    for(int i = 0; i < n; i++) {
-        write_element(&vec, i, str, size);
-    }
-
-    n = 20;
-
-    resize_vector(&vec, n);
-
-    for(int i = 0; i < n; i++) {
-        write_element(&vec, i, str, size);
-    }
-
-    for(int i = 0; i < n; i++) {
-        read_element(&vec, i, p, size);
-        printf("%s\n", p);
-    }
-
-    return 0;
-}
-
