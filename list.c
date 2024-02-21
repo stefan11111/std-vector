@@ -36,31 +36,30 @@ void resize_vector(vec_t *ptr, size_t num_elements)
         ptr->malloc_error();
     }
 
-    size_t n_size = ptr->total_size < num_elements ? ptr->total_size : num_elements;
+    size_t min_size = ptr->total_size < num_elements ? ptr->total_size : num_elements;
 
-    for(char *it = ptr->elements; it < ptr->elements + n_size * size; it += size) {
+    for(char *it = ptr->elements; it < ptr->elements + min_size * size; it += size) {
         ptr->move(it_2, it, size);
         it_2 += size;
     }
 
-    void *free_p = ptr->elements;
+    char *free_p = ptr->elements;
 
     ptr->elements = tmp;
 
-    free(free_p);
 
-    if(num_elements > ptr->total_size) {
-        for(char *it = ptr->elements + (ptr->total_size) * size; it < ptr->elements + num_elements * size; it += size) {
-            ptr->constructor(it);
-        }
-
-        ptr->total_size = num_elements;
-        return;
+    /* if new_size > old_size */
+    for(char *it = ptr->elements + (ptr->total_size) * size; it < ptr->elements + num_elements * size; it += size) {
+        ptr->constructor(it);
     }
 
-    for(char *it = ptr->elements + (ptr->total_size - 1) * size; it >= ptr->elements + num_elements * size ; it -= size) {
+
+    /* if new_size < old size */
+    for(char *it = free_p + (ptr->total_size - 1) * size; it >= free_p + num_elements * size ; it -= size) {
         ptr->destructor(it);
     }
+
+    free(free_p);
 
     ptr->total_size = num_elements;
 }

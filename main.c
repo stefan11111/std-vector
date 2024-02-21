@@ -4,6 +4,9 @@
 
 #include "list.h"
 
+volatile char out;
+volatile char* p_out = &out;
+
 static inline void nop()
 {
 }
@@ -38,7 +41,7 @@ int main()
         write_element(&vec, i, str, size);
     }
 
-    n = 20;
+    n = 5;
 
     resize_vector(&vec, n);
 
