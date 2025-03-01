@@ -27,6 +27,15 @@ void resize_vector(vec_t *ptr, size_t num_elements)
 {
     size_t size = ptr->size;
 
+    if (num_elements == ptr->total_size) {
+        return;
+    }
+
+    if (ptr->overallocate && num_elements > ptr->total_size
+                          && num_elements < (ptr->total_size << 1)) {
+        num_elements = ptr->total_size;
+    }
+
     char *tmp = malloc(num_elements * size);
 
     char *it_2 = tmp;

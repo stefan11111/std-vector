@@ -13,6 +13,7 @@ typedef struct{
     void (*malloc_error) ();
     size_t size;
     size_t total_size;
+    char overallocate;
 } vec_t;
 
 void init_vector(vec_t *ptr, size_t size, size_t num_elements, void (*_init_vector)(vec_t *ptr));

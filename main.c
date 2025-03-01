@@ -22,6 +22,8 @@ static inline void _init_vector(vec_t *ptr)
     ptr->move = &memcpy;
 
     ptr->malloc_error = &exit;
+
+    ptr->overallocate = 0;
 }
 
 int main()
@@ -56,4 +58,3 @@ int main()
 
     return 0;
 }
-
